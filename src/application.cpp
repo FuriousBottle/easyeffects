@@ -250,6 +250,10 @@ void application_class_init(ApplicationClass* klass) {
       self->presets_manager = new PresetsManager();
     }
 
+    if (self->pm == nullptr) {
+      self->pm = new PipeManager();
+    }
+
     if (g_variant_dict_contains(options, "presets") != 0) {
       std::string list;
 
@@ -278,6 +282,40 @@ void application_class_init(ApplicationClass* klass) {
           return EXIT_SUCCESS;
         }
       }
+    }
+
+    if (g_variant_dict_contains(options, "output-devices") != 0) {
+      std::string list;
+
+      list += "Output Devices:\n";
+      for (const auto& [serial, node] : self->pm->node_map) {
+        if (node.media_class == "Audio/Sink" && node.name != self->pm->ee_sink_node.name) {
+          list += std::to_string(node.id) + ": ";
+          list += node.description;
+          list += "\n";
+        }
+      }
+
+      std::cout << list << std::endl;
+
+      return EXIT_SUCCESS;
+    }
+
+    if (g_variant_dict_contains(options, "input-devices") != 0) {
+      std::string list;
+
+      list += "Input Devices:\n";
+      for (const auto& [serial, node] : self->pm->node_map) {
+        if (node.media_class == "Audio/Source" && node.name != self->pm->ee_source_node.name) {
+          list += std::to_string(node.id) + ": ";
+          list += node.description;
+          list += "\n";
+        }
+      }
+
+      std::cout << list << std::endl;
+
+      return EXIT_SUCCESS;
     }
 
     return -1;
@@ -515,6 +553,12 @@ auto application_new() -> GApplication* {
 
   g_application_add_main_option(G_APPLICATION(app), "presets", 'p', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
                                 _("Show available presets."), nullptr);
+  
+  g_application_add_main_option(G_APPLICATION(app), "output-devices", 'o', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+                                _("Show available output devices."), nullptr);
+
+  g_application_add_main_option(G_APPLICATION(app), "input-devices", 'i', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
+                                _("Show available input devices."), nullptr);
 
   return G_APPLICATION(app);
 }
