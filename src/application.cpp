@@ -289,7 +289,7 @@ void application_class_init(ApplicationClass* klass) {
 
       list += "Output Devices:\n";
       for (const auto& [serial, node] : self->pm->node_map) {
-        if (node.media_class == "Audio/Sink" && node.name != self->pm->ee_sink_node.name) {
+        if (node.media_class == self->pm->media_class_sink && node.name != self->pm->ee_sink_node.name) {
           list += std::to_string(node.id) + ": ";
           list += node.description;
           list += "\n";
@@ -306,7 +306,7 @@ void application_class_init(ApplicationClass* klass) {
 
       list += "Input Devices:\n";
       for (const auto& [serial, node] : self->pm->node_map) {
-        if (node.media_class == "Audio/Source" && node.name != self->pm->ee_source_node.name) {
+        if (node.media_class == self->pm->media_class_source && node.name != self->pm->ee_source_node.name) {
           list += std::to_string(node.id) + ": ";
           list += node.description;
           list += "\n";
@@ -374,8 +374,12 @@ void application_class_init(ApplicationClass* klass) {
       if (g_variant_dict_lookup(options, "set-output-device", "&s", &string_id) != 0) {
         const uint uint_id = std::stoi(string_id);
         node = self->pm->node_map_at_id(uint_id);
-        if (node.media_class == "Audio/Sink" && node.name != self->pm->ee_sink_node.name) {
-          util::gsettings_set_string(self->soe_settings, "output-device");
+        if (node.media_class == self->pm->media_class_sink && node.name != self->pm->ee_sink_node.name) {
+          self->pm->output_device = node;
+          self->pm->connect_stream_output(uint_id);
+          g_settings_set_string(self->settings, "output-device", node.name.c_str());
+
+          std::cout << "here" << std::endl; 
         }
       }
     } else {
