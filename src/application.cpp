@@ -367,6 +367,17 @@ void application_class_init(ApplicationClass* klass) {
           g_settings_set_boolean(self->settings, "bypass", 0);
         }
       }
+    } else if (g_variant_dict_contains(options, "set-output-device") != 0) {
+      const char* string_id = nullptr;
+      NodeInfo node;
+
+      if (g_variant_dict_lookup(options, "set-output-device", "&s", &string_id) != 0) {
+        const uint uint_id = std::stoi(string_id);
+        node = self->pm->node_map_at_id(uint_id);
+        if (node.media_class == "Audio/Sink" && node.name != self->pm->ee_sink_node.name) {
+          util::gsettings_set_string(self->soe_settings, "output-device");
+        }
+      }
     } else {
       g_application_activate(gapp);
     }
@@ -556,6 +567,9 @@ auto application_new() -> GApplication* {
   
   g_application_add_main_option(G_APPLICATION(app), "output-devices", 'o', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
                                 _("Show available output devices."), nullptr);
+
+  g_application_add_main_option(G_APPLICATION(app), "set-output-device", 's', G_OPTION_FLAG_NONE, G_OPTION_ARG_STRING,
+                                _("Set output device based on ID provided in easyeffects -o. Example: easyeffects -s <id>"), nullptr);
 
   g_application_add_main_option(G_APPLICATION(app), "input-devices", 'i', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE,
                                 _("Show available input devices."), nullptr);
