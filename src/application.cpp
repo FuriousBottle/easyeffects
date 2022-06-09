@@ -375,11 +375,9 @@ void application_class_init(ApplicationClass* klass) {
         const uint uint_id = std::stoi(string_id);
         node = self->pm->node_map_at_id(uint_id);
         if (node.media_class == self->pm->media_class_sink && node.name != self->pm->ee_sink_node.name) {
-          self->pm->output_device = node;
-          self->pm->connect_stream_output(uint_id);
-          g_settings_set_string(self->settings, "output-device", node.name.c_str());
+          
+          g_settings_set_string(self->soe_settings, "output-device", node.name.c_str());
 
-          std::cout << "here" << std::endl; 
         }
       }
     } else {
