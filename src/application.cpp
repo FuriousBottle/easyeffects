@@ -372,7 +372,8 @@ void application_class_init(ApplicationClass* klass) {
       NodeInfo node;
 
       if (g_variant_dict_lookup(options, "set-output-device", "&s", &string_id) != 0) {
-        const uint uint_id = std::stoi(string_id);
+        uint uint_id;
+        util::str_to_num(string_id, uint_id);
         node = self->pm->node_map_at_id(uint_id);
         if (node.media_class == self->pm->media_class_sink && node.name != self->pm->ee_sink_node.name) {
           
